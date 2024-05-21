@@ -50,8 +50,34 @@ def indexDisciplinas():
     disciplinas = cur.fetchall()
     cur.close()
     conn.close()
-    return render_template('index.html', disciplinas=disciplinas)
+    return render_template('disciplinas/indexDisciplina.html', disciplinas=disciplinas)
 
+@app.route('/new_disciplina', methods=['GET', 'POST'])
+def new_disciplina():
+    if request.method == 'POST':
+        nome = request.form['nome']
+        carga_horaria = request.form['carga_horaria']
+        try:
+            conn = connect_db()
+            cur = conn.cursor()
+            cur.execute('INSERT INTO disciplinas (nome, carga_horaria) VALUES (%s, %s)', (nome, carga_horaria))
+            conn.commit()
+            cur.close()
+            conn.close()
+            return redirect(url_for('indexDisciplinas'))
+        except Exception as e:
+            print(f"Ocorreu um erro ao inserir o professor: {e}")
+    return render_template('disciplinas/newDisciplina.html')
+
+@app.route('/cursos')
+def indexCurso():
+    conn = connect_db()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM cursos')
+    cursos = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template('cursos/indexCursos.html', cursos=cursos)
 # Adicione outras rotas e handlers conforme necessário
 
 if __name__ == '__main__':
