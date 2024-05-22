@@ -8,6 +8,11 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+{% extends "base.html" %}
+
+{% block title %}Lista de Professores{% endblock %}
+
+{% block content %}
     <div class="container">
         <h1 class="mt-5">Lista de Professores</h1>
         <table class="table table-striped mt-3">
@@ -28,11 +33,13 @@
                 {% endfor %}
             </tbody>
         </table>
-        <a href="{{ url_for('new_professor') }}" class="btn btn-primary">Adicionar Novo Professor</a>
+        <a href="{{ url_for('new_professor') }}" class="btn btn-dark">Novo Professor</a>
     </div>
     <!-- Bootstrap JS, Popper.js, and jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% endblock %}
+
 </body>
 </html>
