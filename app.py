@@ -148,6 +148,7 @@ def new_curso():
 
 
 
+
 @app.route('/delete_curso/<int:id>', methods=['POST'])
 def delete_curso(id):
     try:
