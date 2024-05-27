@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QTS - Novo Professor</title>
+    <title>QTS - Editar Curso</title>
     <!-- Bootstrap CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 {% extends "base.html" %}
 
-{% block title %}{% endblock %}
+{% block title %}Editar Curso{% endblock %}
 
 {% block content %}
     <div class="container">
-        <h1 class="mt-5">Adicionar Novo Curso</h1>
+        <h1 class="mt-5">Editar Curso</h1>
         <form method="post">
             <div class="form-group">
                 <label for="nome">Nome:</label>
-                <input type="text" class="form-control" id="nome" name="nome" required>
+                <input type="text" class="form-control" id="nome" name="nome" value="{{ curso[1] }}" required>
             </div>
             <div class="form-group">
                 <label for="duracao">Duração:</label>
-                <input type="text" class="form-control" id="duracao" name="duracao" required>
+                <input type="text" class="form-control" id="duracao" name="duracao" value="{{ curso[2] }}" required>
             </div>
             <div class="form-group">
                 <label for="disciplinas">Disciplinas:</label>
@@ -35,14 +35,13 @@
                     {% endfor %}
                 </div>
             </div>
-            <button type="submit" class="btn btn-dark">Adicionar</button>
+            <button type="submit" class="btn btn-dark">Salvar</button>
         </form>
     </div>
     <!-- Bootstrap JS, Popper.js, and jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
 {% endblock %}
 </body>
 </html>

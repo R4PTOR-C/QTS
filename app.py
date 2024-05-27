@@ -107,9 +107,11 @@ def index_curso():
     conn = connect_db()
     cur = conn.cursor()
     cur.execute('''
-        SELECT cursos.id, cursos.nome, cursos.duracao, disciplinas.nome 
+        SELECT cursos.id, cursos.nome, cursos.duracao, array_agg(disciplinas.nome)
         FROM cursos
-        JOIN disciplinas ON cursos.disciplina = disciplinas.id
+        JOIN curso_disciplinas ON cursos.id = curso_disciplinas.curso_id
+        JOIN disciplinas ON curso_disciplinas.disciplina_id = disciplinas.id
+        GROUP BY cursos.id, cursos.nome, cursos.duracao
     ''')
     cursos = cur.fetchall()
     cur.close()
@@ -121,11 +123,14 @@ def new_curso():
     if request.method == 'POST':
         nome = request.form['nome']
         duracao = request.form['duracao']
-        disciplina = request.form['disciplina']
+        disciplinas = request.form.getlist('disciplinas[]')
         try:
             conn = connect_db()
             cur = conn.cursor()
-            cur.execute('INSERT INTO cursos (nome, duracao, disciplina) VALUES (%s, %s, %s)', (nome, duracao, disciplina))
+            cur.execute('INSERT INTO cursos (nome, duracao) VALUES (%s, %s) RETURNING id', (nome, duracao))
+            curso_id = cur.fetchone()[0]
+            for disciplina_id in disciplinas:
+                cur.execute('INSERT INTO curso_disciplinas (curso_id, disciplina_id) VALUES (%s, %s)', (curso_id, disciplina_id))
             conn.commit()
             cur.close()
             conn.close()
@@ -141,11 +146,14 @@ def new_curso():
         conn.close()
         return render_template('cursos/newCurso.html', disciplinas=disciplinas)
 
+
+
 @app.route('/delete_curso/<int:id>', methods=['POST'])
 def delete_curso(id):
     try:
         conn = connect_db()
         cur = conn.cursor()
+        cur.execute('DELETE FROM curso_disciplinas WHERE curso_id = %s', (id,))
         cur.execute('DELETE FROM cursos WHERE id = %s', (id,))
         conn.commit()
         cur.close()
@@ -154,6 +162,40 @@ def delete_curso(id):
     except Exception as e:
         print(f"Ocorreu um erro ao deletar o curso: {e}")
         return redirect(url_for('index_curso'))
+
+@app.route('/edit_curso/<int:id>', methods=['GET', 'POST'])
+def edit_curso(id):
+    if request.method == 'POST':
+        nome = request.form['nome']
+        duracao = request.form['duracao']
+        disciplinas = request.form.getlist('disciplinas[]')
+        try:
+            conn = connect_db()
+            cur = conn.cursor()
+            cur.execute('UPDATE cursos SET nome = %s, duracao = %s WHERE id = %s', (nome, duracao, id))
+            cur.execute('DELETE FROM curso_disciplinas WHERE curso_id = %s', (id,))
+            for disciplina_id in disciplinas:
+                cur.execute('INSERT INTO curso_disciplinas (curso_id, disciplina_id) VALUES (%s, %s)', (id, disciplina_id))
+            conn.commit()
+            cur.close()
+            conn.close()
+            return redirect(url_for('index_curso'))
+        except Exception as e:
+            print(f"Ocorreu um erro ao editar o curso: {e}")
+    else:
+        conn = connect_db()
+        cur = conn.cursor()
+        cur.execute('SELECT id, nome, duracao FROM cursos WHERE id = %s', (id,))
+        curso = cur.fetchone()
+        cur.execute('SELECT id, nome FROM disciplinas')
+        disciplinas = cur.fetchall()
+        cur.execute('SELECT disciplina_id FROM curso_disciplinas WHERE curso_id = %s', (id,))
+        curso_disciplinas = cur.fetchall()
+        curso_disciplinas_ids = [disciplina[0] for disciplina in curso_disciplinas]
+        cur.close()
+        conn.close()
+        return render_template('cursos/editCurso.html', curso=curso, disciplinas=disciplinas, curso_disciplinas_ids=curso_disciplinas_ids)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
