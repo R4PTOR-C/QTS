@@ -22,7 +22,7 @@
             <th>Nome</th>
             <th>Duração</th>
             <th>Disciplina</th>
-
+            <th></th>
         </tr>
         </thead>
         <tbody>
@@ -32,6 +32,11 @@
             <td>{{ curso[1] }}</td>
             <td>{{ curso[2] }}</td>
             <td>{{ curso[3] }}</td>
+            <td>
+                <form action="{{ url_for('delete_curso', id=curso[0]) }}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </td>
         </tr>
         {% endfor %}
         </tbody>

@@ -14,13 +14,15 @@
 
 {% block content %}
 <div class="container">
-    <h1 class="mt-5">Lista de Professores</h1>
+    <h1 class="mt-5">Lista de Disciplinas</h1>
     <table class="table table-striped mt-3">
         <thead>
         <tr>
             <th>ID</th>
             <th>Nome</th>
             <th>Carga Horaria</th>
+            <th></th>
+
         </tr>
         </thead>
         <tbody>
@@ -29,6 +31,11 @@
             <td>{{ disciplina[0] }}</td>
             <td>{{ disciplina[1] }}</td>
             <td>{{ disciplina[2] }}</td>
+            <td>
+                <form action="{{ url_for('delete_disciplina', id=disciplina[0]) }}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </td>
         </tr>
         {% endfor %}
         </tbody>

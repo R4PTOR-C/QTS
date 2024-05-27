@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_bootstrap import Bootstrap
-
 import psycopg2
 
 app = Flask(__name__)
@@ -15,6 +14,7 @@ def connect_db():
         port='5432'
     )
 
+# Quicksort function
 def quicksort(arr, key=lambda x: x):
     if len(arr) <= 1:
         return arr
@@ -24,6 +24,7 @@ def quicksort(arr, key=lambda x: x):
     right = [x for x in arr if key(x) > key(pivot)]
     return quicksort(left, key) + middle + quicksort(right, key)
 
+#-----------------------------------------------------------------PROFESSORES------------------------------------------------------------------
 
 @app.route('/')
 def index():
@@ -52,6 +53,8 @@ def new_professor():
             print(f"Ocorreu um erro ao inserir o professor: {e}")
     return render_template('new.html')
 
+#-----------------------------------------------------------------DISCIPLINAS------------------------------------------------------------------
+
 @app.route('/disciplinas')
 def index_disciplinas():
     conn = connect_db()
@@ -61,11 +64,10 @@ def index_disciplinas():
     cur.close()
     conn.close()
 
-    # Ordenar os dados pela carga horária (segunda coluna, índice 1)
+    # Ordenar os dados pela carga horária (terceira coluna, índice 2)
     disciplinas = quicksort(disciplinas, key=lambda x: x[2])
 
     return render_template('disciplinas/indexDisciplina.html', disciplinas=disciplinas)
-
 
 @app.route('/new_disciplina', methods=['GET', 'POST'])
 def new_disciplina():
@@ -81,14 +83,34 @@ def new_disciplina():
             conn.close()
             return redirect(url_for('index_disciplinas'))
         except Exception as e:
-            print(f"Ocorreu um erro ao inserir o professor: {e}")
+            print(f"Ocorreu um erro ao inserir a disciplina: {e}")
     return render_template('disciplinas/newDisciplina.html')
+
+@app.route('/delete_disciplina/<int:id>', methods=['POST'])
+def delete_disciplina(id):
+    try:
+        conn = connect_db()
+        cur = conn.cursor()
+        cur.execute('DELETE FROM disciplinas WHERE id = %s', (id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return redirect(url_for('index_disciplinas'))
+    except Exception as e:
+        print(f"Ocorreu um erro ao deletar o curso: {e}")
+        return redirect(url_for('index_disciplinas'))
+
+#-----------------------------------------------------------------CURSOS------------------------------------------------------------------
 
 @app.route('/cursos')
 def index_curso():
     conn = connect_db()
     cur = conn.cursor()
-    cur.execute('SELECT * FROM cursos')
+    cur.execute('''
+        SELECT cursos.id, cursos.nome, cursos.duracao, disciplinas.nome 
+        FROM cursos
+        JOIN disciplinas ON cursos.disciplina = disciplinas.id
+    ''')
     cursos = cur.fetchall()
     cur.close()
     conn.close()
@@ -109,9 +131,29 @@ def new_curso():
             conn.close()
             return redirect(url_for('index_curso'))
         except Exception as e:
-            print(f"Ocorreu um erro ao inserir o professor: {e}")
-    return render_template('cursos/newCurso.html')
-# Adicione outras rotas e handlers conforme necessário
+            print(f"Ocorreu um erro ao inserir o curso: {e}")
+    else:
+        conn = connect_db()
+        cur = conn.cursor()
+        cur.execute('SELECT id, nome FROM disciplinas')
+        disciplinas = cur.fetchall()
+        cur.close()
+        conn.close()
+        return render_template('cursos/newCurso.html', disciplinas=disciplinas)
+
+@app.route('/delete_curso/<int:id>', methods=['POST'])
+def delete_curso(id):
+    try:
+        conn = connect_db()
+        cur = conn.cursor()
+        cur.execute('DELETE FROM cursos WHERE id = %s', (id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return redirect(url_for('index_curso'))
+    except Exception as e:
+        print(f"Ocorreu um erro ao deletar o curso: {e}")
+        return redirect(url_for('index_curso'))
 
 if __name__ == '__main__':
     app.run(debug=True)
