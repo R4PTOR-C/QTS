@@ -6,48 +6,82 @@
     <title>QTS - Nova Aula</title>
     <!-- Bootstrap CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .table td, .table th {
+            padding: .75rem;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+        }
+        .selected {
+            background-color: #007bff;
+            color: white;
+        }
+        .occupied {
+            background-color: #e3342f;
+            color: white;
+        }
+        .unselectable {
+            background-color: #d3d3d3;
+            pointer-events: none;
+        }
+    </style>
     <script>
-        function updateHorario() {
-            var periodo = document.getElementById('periodo').value;
-            var hora_inicio = document.getElementById('hora_inicio');
-            var hora_fim = document.getElementById('hora_fim');
+        document.addEventListener('DOMContentLoaded', function () {
+            var selectedSlots = [];
 
-            // Limpar as opções atuais
-            hora_inicio.innerHTML = '';
-            hora_fim.innerHTML = '';
+            document.querySelectorAll('.selectable').forEach(function (cell) {
+                cell.addEventListener('click', function () {
+                    if (this.classList.contains('occupied')) return;
 
-            if (periodo === 'matutino') {
-                for (var i = 8; i <= 11; i++) {
-                    var optionInicio = document.createElement('option');
-                    optionInicio.value = i + ':00';
-                    optionInicio.text = i + ':00';
-                    hora_inicio.add(optionInicio);
+                    var day = this.dataset.day;
+                    var hour = parseInt(this.dataset.hour);
 
-                    var optionFim = document.createElement('option');
-                    optionFim.value = i + ':00';
-                    optionFim.text = i + ':00';
-                    hora_fim.add(optionFim);
-                }
-            } else if (periodo === 'noturno') {
-                for (var i = 19; i <= 22; i++) {
-                    var optionInicio = document.createElement('option');
-                    optionInicio.value = i + ':00';
-                    optionInicio.text = i + ':00';
-                    hora_inicio.add(optionInicio);
+                    if (isDayFullyOccupied(day)) {
+                        markDayAsUnselectable(day);
+                        return;
+                    }
 
-                    var optionFim = document.createElement('option');
-                    optionFim.value = i + ':00';
-                    optionFim.text = i + ':00';
-                    hora_fim.add(optionFim);
-                }
+                    var index = selectedSlots.findIndex(slot => slot.day === day && slot.hour === hour);
+                    if (index >= 0) {
+                        // Remove slot if already selected
+                        selectedSlots.splice(index, 1);
+                        this.classList.remove('selected');
+                    } else {
+                        // Add slot if not already selected
+                        selectedSlots.push({ day: day, hour: hour });
+                        this.classList.add('selected');
+                    }
+
+                    updateFormFields(selectedSlots);
+                });
+            });
+
+            function isDayFullyOccupied(day) {
+                var totalHours = document.querySelectorAll(`.selectable[data-day="${day}"]`).length;
+                var occupiedHours = document.querySelectorAll(`.selectable[data-day="${day}"].occupied`).length;
+                return totalHours === occupiedHours;
             }
 
-            // Reset the time input fields
-            hora_inicio.value = '';
-            hora_fim.value = '';
-        }
+            function markDayAsUnselectable(day) {
+                document.querySelectorAll(`.selectable[data-day="${day}"]`).forEach(function (cell) {
+                    cell.classList.add('unselectable');
+                });
+            }
 
-        window.onload = updateHorario; // Initialize the horario options on page load
+            function updateFormFields(slots) {
+                var days = slots.map(slot => slot.day);
+                var startHours = slots.map(slot => slot.hour).sort();
+                var endHours = slots.map(slot => slot.hour + 1).sort();
+
+                document.getElementById('dia_semana').value = [...new Set(days)].join(', ');
+                document.getElementById('hora_inicio').value = startHours.length ? `${startHours[0]}:00` : '';
+                document.getElementById('hora_fim').value = endHours.length ? `${endHours[endHours.length - 1]}:00` : '';
+            }
+        });
     </script>
 </head>
 <body>
@@ -84,31 +118,71 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="dia_semana">Dia da Semana:</label>
-                <select class="form-control" id="dia_semana" name="dia_semana" required>
-                    <option value="Segunda-feira">Segunda-feira</option>
-                    <option value="Terça-feira">Terça-feira</option>
-                    <option value="Quarta-feira">Quarta-feira</option>
-                    <option value="Quinta-feira">Quinta-feira</option>
-                    <option value="Sexta-feira">Sexta-feira</option>
-                    <option value="Sábado">Sábado</option>
-                    <option value="Domingo">Domingo</option>
+                <label for="periodo">Período:</label>
+                <select class="form-control" id="periodo" name="periodo" onchange="window.location.href='{{ url_for('new_aula') }}?periodo=' + this.value">
+                    <option value="matutino" {% if periodo == 'matutino' %}selected{% endif %}>Matutino (08:00 - 11:00)</option>
+                    <option value="noturno" {% if periodo == 'noturno' %}selected{% endif %}>Noturno (19:00 - 22:00)</option>
                 </select>
             </div>
             <div class="form-group">
-                <label for="periodo">Período:</label>
-                <select class="form-control" id="periodo" name="periodo" onchange="updateHorario()" required>
-                    <option value="matutino">Matutino (08:00 - 11:00)</option>
-                    <option value="noturno">Noturno (19:00 - 22:00)</option>
-                </select>
+                <label for="quadro_semanal">Quadro Semanal:</label>
+                <table class="table table-bordered mt-3">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Horário</th>
+                            <th>Segunda-feira</th>
+                            <th>Terça-feira</th>
+                            <th>Quarta-feira</th>
+                            <th>Quinta-feira</th>
+                            <th>Sexta-feira</th>
+                            <th>Sábado</th>
+                            <th>Domingo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if periodo == 'matutino' %}
+                            {% for hora in range(8, 11) %}
+                                <tr>
+                                    <td>{{ hora }}:00 - {{ hora+1 }}:00</td>
+                                    {% for dia in ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"] %}
+                                        <td class="selectable" data-day="{{ dia }}" data-hour="{{ hora }}"
+                                            {% if horario_semanal[dia][hora] %}class="occupied"{% endif %}>
+                                            {% if horario_semanal[dia][hora] %}
+                                                Ocupado
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        {% elif periodo == 'noturno' %}
+                            {% for hora in range(19, 22) %}
+                                <tr>
+                                    <td>{{ hora }}:00 - {{ hora+1 }}:00</td>
+                                    {% for dia in ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"] %}
+                                        <td class="selectable" data-day="{{ dia }}" data-hour="{{ hora }}"
+                                            {% if horario_semanal[dia][hora] %}class="occupied"{% endif %}>
+                                            {% if horario_semanal[dia][hora] %}
+                                                Ocupado
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="form-group">
+                <label for="dia_semana">Dia da Semana:</label>
+                <input type="text" class="form-control" id="dia_semana" name="dia_semana" readonly required>
             </div>
             <div class="form-group">
                 <label for="hora_inicio">Hora de Início:</label>
-                <select class="form-control" id="hora_inicio" name="hora_inicio" required></select>
+                <input type="text" class="form-control" id="hora_inicio" name="hora_inicio" readonly required>
             </div>
             <div class="form-group">
                 <label for="hora_fim">Hora de Fim:</label>
-                <select class="form-control" id="hora_fim" name="hora_fim" required></select>
+                <input type="text" class="form-control" id="hora_fim" name="hora_fim" readonly required>
             </div>
             <div class="form-group">
                 <label for="sala">Sala:</label>

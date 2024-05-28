@@ -263,6 +263,7 @@ def new_aula():
         except Exception as e:
             print(f"Ocorreu um erro ao inserir a aula: {e}")
     else:
+        periodo = request.args.get('periodo', 'matutino')
         conn = connect_db()
         cur = conn.cursor()
         cur.execute('SELECT id, nome FROM cursos')
@@ -271,9 +272,30 @@ def new_aula():
         disciplinas = cur.fetchall()
         cur.execute('SELECT id, nome FROM professores')
         professores = cur.fetchall()
+        cur.execute('''
+            SELECT aulas.id, cursos.nome, disciplinas.nome, professores.nome, aulas.dia_semana, aulas.hora_inicio, aulas.hora_fim, aulas.sala
+            FROM aulas
+            JOIN cursos ON aulas.curso_id = cursos.id
+            JOIN disciplinas ON aulas.disciplina_id = disciplinas.id
+            JOIN professores ON aulas.professor_id = professores.id
+        ''')
+        aulas = cur.fetchall()
         cur.close()
         conn.close()
-        return render_template('aulas/newAula.html', cursos=cursos, disciplinas=disciplinas, professores=professores)
+
+        # Organizar as aulas em um dicionário para fácil acesso no template
+        dias_da_semana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+        horario_semanal = {dia: {hora: [] for hora in range(8, 12) if periodo == 'matutino'} for dia in dias_da_semana}
+        horario_semanal.update({dia: {hora: [] for hora in range(19, 22) if periodo == 'noturno'} for dia in dias_da_semana})
+
+        for aula in aulas:
+            hora_inicio = aula[5].hour
+            hora_fim = aula[6].hour
+            for hora in range(hora_inicio, hora_fim):
+                if hora in horario_semanal[aula[4]]:
+                    horario_semanal[aula[4]][hora].append(aula)
+
+        return render_template('aulas/newAula.html', cursos=cursos, disciplinas=disciplinas, professores=professores, horario_semanal=horario_semanal, periodo=periodo)
 
 @app.route('/delete_aula/<int:id>', methods=['POST'])
 def delete_aula(id):
