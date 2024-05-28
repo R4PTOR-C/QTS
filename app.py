@@ -100,6 +100,32 @@ def delete_disciplina(id):
         print(f"Ocorreu um erro ao deletar o curso: {e}")
         return redirect(url_for('index_disciplinas'))
 
+@app.route('/edit_disciplina/<int:id>', methods=['GET', 'POST'])
+def edit_disciplina(id):
+    if request.method == 'POST':
+        nome = request.form['nome']
+        carga_horaria = request.form['carga_horaria']
+        try:
+            conn = connect_db()
+            cur = conn.cursor()
+            cur.execute('UPDATE disciplinas SET nome = %s, carga_horaria = %s WHERE id = %s',
+                        (nome, carga_horaria, id))
+            conn.commit()
+            cur.close()
+            conn.close()
+            return redirect(url_for('index_disciplinas'))
+        except Exception as e:
+            print(f"Ocorreu um erro ao editar a disciplina: {e}")
+    else:
+        conn = connect_db()
+        cur = conn.cursor()
+        cur.execute('SELECT id, nome, carga_horaria FROM disciplinas WHERE id = %s', (id,))
+        disciplina = cur.fetchone()
+        cur.close()
+        conn.close()
+        return render_template('disciplinas/editDisciplina.html', disciplina=disciplina)
+
+
 #-----------------------------------------------------------------CURSOS------------------------------------------------------------------
 
 @app.route('/cursos')

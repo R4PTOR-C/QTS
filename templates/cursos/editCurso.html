@@ -28,13 +28,16 @@
                 <label for="disciplinas">Disciplinas:</label>
                 <div id="disciplinas-container">
                     {% for disciplina_id in curso_disciplinas_ids %}
-                        <div class="discipline-entry">
-                            <select class="form-control mb-2" name="disciplinas[]" required>
+                        <div class="discipline-entry input-group mb-2">
+                            <select class="form-control" name="disciplinas[]" required>
                                 <option value="" disabled>Selecione uma disciplina</option>
                                 {% for disciplina in disciplinas %}
                                     <option value="{{ disciplina[0] }}" {% if disciplina[0] == disciplina_id %}selected{% endif %}>{{ disciplina[1] }}</option>
                                 {% endfor %}
                             </select>
+                            <div class="input-group-append">
+                                <button class="btn btn-danger remove-discipline" type="button">&times;</button>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -47,21 +50,35 @@
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- Script para adicionar mais campos de disciplinas -->
+    <!-- Script para adicionar e remover campos de disciplinas -->
     <script>
         document.getElementById('add-discipline').addEventListener('click', function() {
             const container = document.getElementById('disciplinas-container');
             const newEntry = document.createElement('div');
-            newEntry.className = 'discipline-entry';
+            newEntry.className = 'discipline-entry input-group mb-2';
             newEntry.innerHTML = `
-                <select class="form-control mb-2" name="disciplinas[]" required>
+                <select class="form-control" name="disciplinas[]" required>
                     <option value="" disabled selected>Selecione uma disciplina</option>
                     {% for disciplina in disciplinas %}
                         <option value="{{ disciplina[0] }}">{{ disciplina[1] }}</option>
                     {% endfor %}
                 </select>
+                <div class="input-group-append">
+                    <button class="btn btn-danger remove-discipline" type="button">&times;</button>
+                </div>
             `;
             container.appendChild(newEntry);
+            attachRemoveEvent(newEntry.querySelector('.remove-discipline'));
+        });
+
+        function attachRemoveEvent(button) {
+            button.addEventListener('click', function() {
+                button.closest('.discipline-entry').remove();
+            });
+        }
+
+        document.querySelectorAll('.remove-discipline').forEach(function(button) {
+            attachRemoveEvent(button);
         });
     </script>
 {% endblock %}
