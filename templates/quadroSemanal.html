@@ -45,42 +45,37 @@
             </thead>
             <tbody>
                 {% if periodo == 'matutino' %}
-                    {% for hora in range(8, 12) %}
+                    {% for hora in range(8, 11) %}
                         <tr>
                             <td>{{ hora }}:00 - {{ hora+1 }}:00</td>
                             {% for dia in ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"] %}
                                 <td>
-                                    {% for aula in horario_semanal[dia] %}
-                                        {% if aula[5].hour == hora %}
-                                            <div>
-                                                <strong>{{ aula[2] }}</strong><br>
-                                                {{ aula[1] }}<br>
-                                                {{ aula[3] }}<br>
-                                                Sala: {{ aula[7] }}<br>
-                                                {{ aula[5].strftime('%H:%M') }} - {{ aula[6].strftime('%H:%M') }}
-                                            </div>
-                                        {% endif %}
+                                    {% for aula in horario_semanal[dia][hora] %}
+                                        <div>
+                                            <strong>{{ aula[2] }}</strong><br>
+                                            {{ aula[1] }}<br>
+                                            {{ aula[3] }}<br>
+                                            Sala: {{ aula[7] }}<br>
+                                            {{ aula[5].strftime('%H:%M') }} - {{ aula[6].strftime('%H:%M') }}
+                                        </div>
                                     {% endfor %}
                                 </td>
                             {% endfor %}
                         </tr>
                     {% endfor %}
                 {% elif periodo == 'noturno' %}
-                    {% for hora in range(19, 23) %}
+                    {% for hora in range(19, 22) %}
                         <tr>
                             <td>{{ hora }}:00 - {{ hora+1 }}:00</td>
                             {% for dia in ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"] %}
                                 <td>
-                                    {% for aula in horario_semanal[dia] %}
-                                        {% if aula[5].hour == hora %}
-                                            <div>
-                                                <strong>{{ aula[2] }}</strong><br>
-                                                {{ aula[1] }}<br>
-                                                {{ aula[3] }}<br>
-                                                Sala: {{ aula[7] }}<br>
-                                                {{ aula[5].strftime('%H:%M') }} - {{ aula[6].strftime('%H:%M') }}
-                                            </div>
-                                        {% endif %}
+                                    {% for aula in horario_semanal[dia][hora] %}
+                                        <div>
+                                            <strong>{{ aula[2] }}</strong><br>
+                                            {{ aula[1] }}<br>
+                                            {{ aula[3] }}<br>
+                                            Sala: {{ aula[7] }}<br>
+                                        </div>
                                     {% endfor %}
                                 </td>
                             {% endfor %}

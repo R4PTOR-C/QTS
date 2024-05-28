@@ -350,12 +350,17 @@ def quadro_semanal(periodo):
 
     # Organizar as aulas em um dicionário para fácil acesso no template
     dias_da_semana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
-    horario_semanal = {dia: [] for dia in dias_da_semana}
+    horario_semanal = {dia: {hora: [] for hora in range(24)} for dia in dias_da_semana}
 
     for aula in aulas:
-        horario_semanal[aula[4]].append(aula)
+        hora_inicio = aula[5].hour
+        hora_fim = aula[6].hour
+        for hora in range(hora_inicio, hora_fim):
+            horario_semanal[aula[4]][hora].append(aula)
 
     return render_template('quadroSemanal.html', horario_semanal=horario_semanal, periodo=periodo)
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
