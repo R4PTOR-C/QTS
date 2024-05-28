@@ -330,7 +330,7 @@ def edit_aula(id):
 
 @app.route('/quadro_semanal')
 def redirect_quadro_semanal():
-    return redirect(url_for('quadro_semanal', periodo='matutino'))
+    return redirect(url_for('quadro_semanal', periodo='noturno'))
 
 
 @app.route('/quadro_semanal/<periodo>')
