@@ -223,6 +223,107 @@ def edit_curso(id):
         conn.close()
         return render_template('cursos/editCurso.html', curso=curso, disciplinas=disciplinas, curso_disciplinas_ids=curso_disciplinas_ids)
 
+#-----------------------------------------------------------------AULAS------------------------------------------------------------------
+
+@app.route('/aulas')
+def index_aula():
+    conn = connect_db()
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT aulas.id, cursos.nome, disciplinas.nome, professores.nome, aulas.dia_semana, aulas.hora_inicio, aulas.hora_fim, aulas.sala
+        FROM aulas
+        JOIN cursos ON aulas.curso_id = cursos.id
+        JOIN disciplinas ON aulas.disciplina_id = disciplinas.id
+        JOIN professores ON aulas.professor_id = professores.id
+    ''')
+    aulas = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template('aulas/indexAula.html', aulas=aulas)
+
+@app.route('/new_aula', methods=['GET', 'POST'])
+def new_aula():
+    if request.method == 'POST':
+        curso_id = request.form['curso_id']
+        disciplina_id = request.form['disciplina_id']
+        professor_id = request.form['professor_id']
+        dia_semana = request.form['dia_semana']
+        hora_inicio = request.form['hora_inicio']
+        hora_fim = request.form['hora_fim']
+        sala = request.form['sala']
+        try:
+            conn = connect_db()
+            cur = conn.cursor()
+            cur.execute('INSERT INTO aulas (curso_id, disciplina_id, professor_id, dia_semana, hora_inicio, hora_fim, sala) VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                        (curso_id, disciplina_id, professor_id, dia_semana, hora_inicio, hora_fim, sala))
+            conn.commit()
+            cur.close()
+            conn.close()
+            return redirect(url_for('index_aula'))
+        except Exception as e:
+            print(f"Ocorreu um erro ao inserir a aula: {e}")
+    else:
+        conn = connect_db()
+        cur = conn.cursor()
+        cur.execute('SELECT id, nome FROM cursos')
+        cursos = cur.fetchall()
+        cur.execute('SELECT id, nome FROM disciplinas')
+        disciplinas = cur.fetchall()
+        cur.execute('SELECT id, nome FROM professores')
+        professores = cur.fetchall()
+        cur.close()
+        conn.close()
+        return render_template('aulas/newAula.html', cursos=cursos, disciplinas=disciplinas, professores=professores)
+
+@app.route('/delete_aula/<int:id>', methods=['POST'])
+def delete_aula(id):
+    try:
+        conn = connect_db()
+        cur = conn.cursor()
+        cur.execute('DELETE FROM aulas WHERE id = %s', (id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return redirect(url_for('index_aula'))
+    except Exception as e:
+        print(f"Ocorreu um erro ao deletar a aula: {e}")
+        return redirect(url_for('index_aula'))
+
+@app.route('/edit_aula/<int:id>', methods=['GET', 'POST'])
+def edit_aula(id):
+    if request.method == 'POST':
+        curso_id = request.form['curso_id']
+        disciplina_id = request.form['disciplina_id']
+        professor_id = request.form['professor_id']
+        dia_semana = request.form['dia_semana']
+        hora_inicio = request.form['hora_inicio']
+        hora_fim = request.form['hora_fim']
+        sala = request.form['sala']
+        try:
+            conn = connect_db()
+            cur = conn.cursor()
+            cur.execute('UPDATE aulas SET curso_id = %s, disciplina_id = %s, professor_id = %s, dia_semana = %s, hora_inicio = %s, hora_fim = %s, sala = %s WHERE id = %s',
+                        (curso_id, disciplina_id, professor_id, dia_semana, hora_inicio, hora_fim, sala, id))
+            conn.commit()
+            cur.close()
+            conn.close()
+            return redirect(url_for('index_aula'))
+        except Exception as e:
+            print(f"Ocorreu um erro ao editar a aula: {e}")
+    else:
+        conn = connect_db()
+        cur = conn.cursor()
+        cur.execute('SELECT id, curso_id, disciplina_id, professor_id, dia_semana, hora_inicio, hora_fim, sala FROM aulas WHERE id = %s', (id,))
+        aula = cur.fetchone()
+        cur.execute('SELECT id, nome FROM cursos')
+        cursos = cur.fetchall()
+        cur.execute('SELECT id, nome FROM disciplinas')
+        disciplinas = cur.fetchall()
+        cur.execute('SELECT id, nome FROM professores')
+        professores = cur.fetchall()
+        cur.close()
+        conn.close()
+        return render_template('aulas/editAula.html', aula=aula, cursos=cursos, disciplinas=disciplinas, professores=professores)
 
 if __name__ == '__main__':
     app.run(debug=True)
