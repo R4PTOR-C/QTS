@@ -26,7 +26,11 @@
 {% block content %}
     <div class="container">
         <h1 class="mt-5">Quadro Semanal</h1>
-        <table class="table table-bordered">
+        <div class="btn-group" role="group" aria-label="Periodo Selector">
+            <a href="{{ url_for('quadro_semanal', periodo='matutino') }}" class="btn btn-primary {% if periodo == 'matutino' %}active{% endif %}">Matutino</a>
+            <a href="{{ url_for('quadro_semanal', periodo='noturno') }}" class="btn btn-primary {% if periodo == 'noturno' %}active{% endif %}">Noturno</a>
+        </div>
+        <table class="table table-bordered mt-3">
             <thead class="thead-dark">
                 <tr>
                     <th>Horário</th>
@@ -40,26 +44,49 @@
                 </tr>
             </thead>
             <tbody>
-                {% for hora in range(7, 22) %}
-                    <tr>
-                        <td>{{ hora }}:00 - {{ hora+1 }}:00</td>
-                        {% for dia in ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"] %}
-                            <td>
-                                {% for aula in horario_semanal[dia] %}
-                                    {% if aula[5].hour == hora %}
-                                        <div>
-                                            <strong>{{ aula[2] }}</strong><br>
-                                            {{ aula[1] }}<br>
-                                            {{ aula[3] }}<br>
-                                            Sala: {{ aula[7] }}<br>
-                                            {{ aula[5].strftime('%H:%M') }} - {{ aula[6].strftime('%H:%M') }}
-                                        </div>
-                                    {% endif %}
-                                {% endfor %}
-                            </td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
+                {% if periodo == 'matutino' %}
+                    {% for hora in range(8, 12) %}
+                        <tr>
+                            <td>{{ hora }}:00 - {{ hora+1 }}:00</td>
+                            {% for dia in ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"] %}
+                                <td>
+                                    {% for aula in horario_semanal[dia] %}
+                                        {% if aula[5].hour == hora %}
+                                            <div>
+                                                <strong>{{ aula[2] }}</strong><br>
+                                                {{ aula[1] }}<br>
+                                                {{ aula[3] }}<br>
+                                                Sala: {{ aula[7] }}<br>
+                                                {{ aula[5].strftime('%H:%M') }} - {{ aula[6].strftime('%H:%M') }}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                {% elif periodo == 'noturno' %}
+                    {% for hora in range(19, 23) %}
+                        <tr>
+                            <td>{{ hora }}:00 - {{ hora+1 }}:00</td>
+                            {% for dia in ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"] %}
+                                <td>
+                                    {% for aula in horario_semanal[dia] %}
+                                        {% if aula[5].hour == hora %}
+                                            <div>
+                                                <strong>{{ aula[2] }}</strong><br>
+                                                {{ aula[1] }}<br>
+                                                {{ aula[3] }}<br>
+                                                Sala: {{ aula[7] }}<br>
+                                                {{ aula[5].strftime('%H:%M') }} - {{ aula[6].strftime('%H:%M') }}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                {% endif %}
             </tbody>
         </table>
     </div>

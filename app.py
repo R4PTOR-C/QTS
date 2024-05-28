@@ -329,7 +329,12 @@ def edit_aula(id):
 #-----------------------------------------------------------------AULAS------------------------------------------------------------------
 
 @app.route('/quadro_semanal')
-def quadro_semanal():
+def redirect_quadro_semanal():
+    return redirect(url_for('quadro_semanal', periodo='matutino'))
+
+
+@app.route('/quadro_semanal/<periodo>')
+def quadro_semanal(periodo):
     conn = connect_db()
     cur = conn.cursor()
     cur.execute('''
@@ -350,7 +355,7 @@ def quadro_semanal():
     for aula in aulas:
         horario_semanal[aula[4]].append(aula)
 
-    return render_template('quadroSemanal.html', horario_semanal=horario_semanal)
+    return render_template('quadroSemanal.html', horario_semanal=horario_semanal, periodo=periodo)
 
 if __name__ == '__main__':
     app.run(debug=True)
