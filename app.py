@@ -325,5 +325,32 @@ def edit_aula(id):
         conn.close()
         return render_template('aulas/editAula.html', aula=aula, cursos=cursos, disciplinas=disciplinas, professores=professores)
 
+
+#-----------------------------------------------------------------AULAS------------------------------------------------------------------
+
+@app.route('/quadro_semanal')
+def quadro_semanal():
+    conn = connect_db()
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT aulas.id, cursos.nome, disciplinas.nome, professores.nome, aulas.dia_semana, aulas.hora_inicio, aulas.hora_fim, aulas.sala
+        FROM aulas
+        JOIN cursos ON aulas.curso_id = cursos.id
+        JOIN disciplinas ON aulas.disciplina_id = disciplinas.id
+        JOIN professores ON aulas.professor_id = professores.id
+    ''')
+    aulas = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    # Organizar as aulas em um dicionário para fácil acesso no template
+    dias_da_semana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+    horario_semanal = {dia: [] for dia in dias_da_semana}
+
+    for aula in aulas:
+        horario_semanal[aula[4]].append(aula)
+
+    return render_template('quadroSemanal.html', horario_semanal=horario_semanal)
+
 if __name__ == '__main__':
     app.run(debug=True)

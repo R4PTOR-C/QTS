@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QTS - Quadro Semanal</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .table td, .table th {
+            padding: .75rem;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+{% extends "base.html" %}
+
+{% block title %}Quadro Semanal{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1 class="mt-5">Quadro Semanal</h1>
+        <table class="table table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Horário</th>
+                    <th>Segunda-feira</th>
+                    <th>Terça-feira</th>
+                    <th>Quarta-feira</th>
+                    <th>Quinta-feira</th>
+                    <th>Sexta-feira</th>
+                    <th>Sábado</th>
+                    <th>Domingo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hora in range(7, 22) %}
+                    <tr>
+                        <td>{{ hora }}:00 - {{ hora+1 }}:00</td>
+                        {% for dia in ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"] %}
+                            <td>
+                                {% for aula in horario_semanal[dia] %}
+                                    {% if aula[5].hour == hora %}
+                                        <div>
+                                            <strong>{{ aula[2] }}</strong><br>
+                                            {{ aula[1] }}<br>
+                                            {{ aula[3] }}<br>
+                                            Sala: {{ aula[7] }}<br>
+                                            {{ aula[5].strftime('%H:%M') }} - {{ aula[6].strftime('%H:%M') }}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% endblock %}
+</body>
+</html>
