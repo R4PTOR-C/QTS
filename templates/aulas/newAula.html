@@ -23,10 +23,7 @@
         .occupied {
             background-color: #e3342f;
             color: white;
-        }
-        .unselectable {
-            background-color: #d3d3d3;
-            pointer-events: none;
+            pointer-events: none;  /* Prevents clicking */
         }
     </style>
     <script>
@@ -39,11 +36,6 @@
 
                     var day = this.dataset.day;
                     var hour = parseInt(this.dataset.hour);
-
-                    if (isDayFullyOccupied(day)) {
-                        markDayAsUnselectable(day);
-                        return;
-                    }
 
                     var index = selectedSlots.findIndex(slot => slot.day === day && slot.hour === hour);
                     if (index >= 0) {
@@ -59,18 +51,6 @@
                     updateFormFields(selectedSlots);
                 });
             });
-
-            function isDayFullyOccupied(day) {
-                var totalHours = document.querySelectorAll(`.selectable[data-day="${day}"]`).length;
-                var occupiedHours = document.querySelectorAll(`.selectable[data-day="${day}"].occupied`).length;
-                return totalHours === occupiedHours;
-            }
-
-            function markDayAsUnselectable(day) {
-                document.querySelectorAll(`.selectable[data-day="${day}"]`).forEach(function (cell) {
-                    cell.classList.add('unselectable');
-                });
-            }
 
             function updateFormFields(slots) {
                 var days = slots.map(slot => slot.day);
@@ -145,11 +125,16 @@
                                 <tr>
                                     <td>{{ hora }}:00 - {{ hora+1 }}:00</td>
                                     {% for dia in ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"] %}
-                                        <td class="selectable" data-day="{{ dia }}" data-hour="{{ hora }}"
-                                            {% if horario_semanal[dia][hora] %}class="occupied"{% endif %}>
-                                            {% if horario_semanal[dia][hora] %}
-                                                Ocupado
-                                            {% endif %}
+                                        <td class="selectable {% if horario_semanal[dia][hora] %}occupied{% endif %}" data-day="{{ dia }}" data-hour="{{ hora }}">
+                                            {% for aula in horario_semanal[dia][hora] %}
+                                                <div>
+                                                    <strong>{{ aula[2] }}</strong><br>
+                                                    {{ aula[1] }}<br>
+                                                    {{ aula[3] }}<br>
+                                                    Sala: {{ aula[7] }}<br>
+                                                    {{ aula[5].strftime('%H:%M') }} - {{ aula[6].strftime('%H:%M') }}
+                                                </div>
+                                            {% endfor %}
                                         </td>
                                     {% endfor %}
                                 </tr>
@@ -159,11 +144,16 @@
                                 <tr>
                                     <td>{{ hora }}:00 - {{ hora+1 }}:00</td>
                                     {% for dia in ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"] %}
-                                        <td class="selectable" data-day="{{ dia }}" data-hour="{{ hora }}"
-                                            {% if horario_semanal[dia][hora] %}class="occupied"{% endif %}>
-                                            {% if horario_semanal[dia][hora] %}
-                                                Ocupado
-                                            {% endif %}
+                                        <td class="selectable {% if horario_semanal[dia][hora] %}occupied{% endif %}" data-day="{{ dia }}" data-hour="{{ hora }}">
+                                            {% for aula in horario_semanal[dia][hora] %}
+                                                <div>
+                                                    <strong>{{ aula[2] }}</strong><br>
+                                                    {{ aula[1] }}<br>
+                                                    {{ aula[3] }}<br>
+                                                    Sala: {{ aula[7] }}<br>
+                                                    {{ aula[5].strftime('%H:%M') }} - {{ aula[6].strftime('%H:%M') }}
+                                                </div>
+                                            {% endfor %}
                                         </td>
                                     {% endfor %}
                                 </tr>

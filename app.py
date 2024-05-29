@@ -273,7 +273,7 @@ def new_aula():
         cur.execute('SELECT id, nome FROM professores')
         professores = cur.fetchall()
         cur.execute('''
-            SELECT aulas.id, cursos.nome, disciplinas.nome, professores.nome, aulas.dia_semana, aulas.hora_inicio, aulas.hora_fim, aulas.sala
+            SELECT aulas.id, cursos.nome AS curso_nome, disciplinas.nome AS disciplina_nome, professores.nome AS professor_nome, aulas.dia_semana, aulas.hora_inicio, aulas.hora_fim, aulas.sala
             FROM aulas
             JOIN cursos ON aulas.curso_id = cursos.id
             JOIN disciplinas ON aulas.disciplina_id = disciplinas.id
@@ -285,7 +285,7 @@ def new_aula():
 
         # Organizar as aulas em um dicionário para fácil acesso no template
         dias_da_semana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
-        horario_semanal = {dia: {hora: [] for hora in range(8, 12) if periodo == 'matutino'} for dia in dias_da_semana}
+        horario_semanal = {dia: {hora: [] for hora in range(8, 11) if periodo == 'matutino'} for dia in dias_da_semana}
         horario_semanal.update({dia: {hora: [] for hora in range(19, 22) if periodo == 'noturno'} for dia in dias_da_semana})
 
         for aula in aulas:
