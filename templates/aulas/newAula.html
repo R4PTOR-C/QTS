@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QTS - Nova Aula</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .table td, .table th {
+            padding: .75rem;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+        }
+        .selected {
+            background-color: #007bff;
+            color: white;
+        }
+        .occupied {
+            background-color: #e3342f;
+            color: white;
+            pointer-events: none;  /* Prevents clicking */
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var selectedSlots = [];
+
+            document.querySelectorAll('.selectable').forEach(function (cell) {
+                cell.addEventListener('click', function () {
+                    if (this.classList.contains('occupied')) return;
+
+                    var day = this.dataset.day;
+                    var hour = parseInt(this.dataset.hour);
+
+                    var index = selectedSlots.findIndex(slot => slot.day === day && slot.hour === hour);
+                    if (index >= 0) {
+                        // Remove slot if already selected
+                        selectedSlots.splice(index, 1);
+                        this.classList.remove('selected');
+                    } else {
+                        // Add slot if not already selected
+                        selectedSlots.push({ day: day, hour: hour });
+                        this.classList.add('selected');
+                    }
+
+                    updateFormFields(selectedSlots);
+                });
+            });
+
+            function updateFormFields(slots) {
+                var days = slots.map(slot => slot.day);
+                var startHours = slots.map(slot => slot.hour).sort();
+                var endHours = slots.map(slot => slot.hour + 1).sort();
+
+                document.getElementById('dia_semana').value = [...new Set(days)].join(', ');
+                document.getElementById('hora_inicio').value = startHours.length ? `${startHours[0]}:00` : '';
+                document.getElementById('hora_fim').value = endHours.length ? `${endHours[endHours.length - 1]}:00` : '';
+            }
+        });
+    </script>
+</head>
+<body>
+{% extends "base.html" %}
+
+{% block title %}Adicionar Nova Aula{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1 class="mt-5">Adicionar Nova Aula</h1>
+        <form method="post">
+            <div class="form-group">
+                <label for="curso_id">Curso:</label>
+                <select class="form-control" id="curso_id" name="curso_id" required>
+                    {% for curso in cursos %}
+                        <option value="{{ curso[0] }}">{{ curso[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="disciplina_id">Disciplina:</label>
+                <select class="form-control" id="disciplina_id" name="disciplina_id" required>
+                    {% for disciplina in disciplinas %}
+                        <option value="{{ disciplina[0] }}">{{ disciplina[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="professor_id">Professor:</label>
+                <select class="form-control" id="professor_id" name="professor_id" required>
+                    {% for professor in professores %}
+                        <option value="{{ professor[0] }}">{{ professor[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="periodo">Período:</label>
+                <select class="form-control" id="periodo" name="periodo" onchange="window.location.href='{{ url_for('new_aula') }}?periodo=' + this.value">
+                    <option value="matutino" {% if periodo == 'matutino' %}selected{% endif %}>Matutino (08:00 - 11:00)</option>
+                    <option value="noturno" {% if periodo == 'noturno' %}selected{% endif %}>Noturno (19:00 - 22:00)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="quadro_semanal">Quadro Semanal:</label>
+                <table class="table table-bordered mt-3">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Horário</th>
+                            <th>Segunda-feira</th>
+                            <th>Terça-feira</th>
+                            <th>Quarta-feira</th>
+                            <th>Quinta-feira</th>
+                            <th>Sexta-feira</th>
+                            <th>Sábado</th>
+                            <th>Domingo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if periodo == 'matutino' %}
+                            {% for hora in range(8, 11) %}
+                                <tr>
+                                    <td>{{ hora }}:00 - {{ hora+1 }}:00</td>
+                                    {% for dia in ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"] %}
+                                        <td class="selectable {% if horario_semanal[dia][hora] %}occupied{% endif %}" data-day="{{ dia }}" data-hour="{{ hora }}">
+                                            {% for aula in horario_semanal[dia][hora] %}
+                                                <div>
+                                                    <strong>{{ aula[2] }}</strong><br>
+                                                    {{ aula[1] }}<br>
+                                                    {{ aula[3] }}<br>
+                                                    Sala: {{ aula[7] }}<br>
+                                                    {{ aula[5].strftime('%H:%M') }} - {{ aula[6].strftime('%H:%M') }}
+                                                </div>
+                                            {% endfor %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        {% elif periodo == 'noturno' %}
+                            {% for hora in range(19, 22) %}
+                                <tr>
+                                    <td>{{ hora }}:00 - {{ hora+1 }}:00</td>
+                                    {% for dia in ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"] %}
+                                        <td class="selectable {% if horario_semanal[dia][hora] %}occupied{% endif %}" data-day="{{ dia }}" data-hour="{{ hora }}">
+                                            {% for aula in horario_semanal[dia][hora] %}
+                                                <div>
+                                                    <strong>{{ aula[2] }}</strong><br>
+                                                    {{ aula[1] }}<br>
+                                                    {{ aula[3] }}<br>
+                                                    Sala: {{ aula[7] }}<br>
+                                                    {{ aula[5].strftime('%H:%M') }} - {{ aula[6].strftime('%H:%M') }}
+                                                </div>
+                                            {% endfor %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="form-group">
+                <label for="dia_semana">Dia da Semana:</label>
+                <input type="text" class="form-control" id="dia_semana" name="dia_semana" readonly required>
+            </div>
+            <div class="form-group">
+                <label for="hora_inicio">Hora de Início:</label>
+                <input type="text" class="form-control" id="hora_inicio" name="hora_inicio" readonly required>
+            </div>
+            <div class="form-group">
+                <label for="hora_fim">Hora de Fim:</label>
+                <input type="text" class="form-control" id="hora_fim" name="hora_fim" readonly required>
+            </div>
+            <div class="form-group">
+                <label for="sala">Sala:</label>
+                <input type="text" class="form-control" id="sala" name="sala" required>
+            </div>
+            <button type="submit" class="btn btn-dark">Adicionar</button>
+        </form>
+    </div>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% endblock %}
+</body>
+</html>

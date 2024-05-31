@@ -3,14 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QTS - Novo Professor</title>
+    <title>QTS - Novo Curso</title>
     <!-- Bootstrap CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .remove-discipline {
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Função para adicionar uma nova disciplina
+            document.getElementById('add-discipline').addEventListener('click', function () {
+                var container = document.getElementById('disciplinas-container');
+                var newEntry = document.createElement('div');
+                newEntry.className = 'discipline-entry input-group mb-2';
+                newEntry.innerHTML = `
+                    <select class="form-control" name="disciplinas[]" required>
+                        <option value="" disabled selected>Selecione uma disciplina</option>
+                        {% for disciplina in disciplinas %}
+                            <option value="{{ disciplina[0] }}">{{ disciplina[1] }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="input-group-append">
+                        <button class="btn btn-danger remove-discipline" type="button">&times;</button>
+                    </div>
+                `;
+                container.appendChild(newEntry);
+                updateRemoveButtons();
+            });
+
+            // Função para remover uma disciplina
+            function updateRemoveButtons() {
+                document.querySelectorAll('.remove-discipline').forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        this.closest('.discipline-entry').remove();
+                    });
+                });
+            }
+
+            // Inicializar os botões de remover disciplina
+            updateRemoveButtons();
+        });
+    </script>
 </head>
 <body>
 {% extends "base.html" %}
 
-{% block title %}{% endblock %}
+{% block title %}Adicionar Novo Curso{% endblock %}
 
 {% block content %}
     <div class="container">
@@ -25,15 +65,28 @@
                 <input type="text" class="form-control" id="duracao" name="duracao" required>
             </div>
             <div class="form-group">
-                <label for="disciplina">Disciplina:</label>
-                <input type="text" class="form-control" id="disciplina" name="disciplina" required>
+                <label for="disciplinas">Disciplinas:</label>
+                <div id="disciplinas-container">
+                    <div class="discipline-entry input-group mb-2">
+                        <select class="form-control" name="disciplinas[]" required>
+                            <option value="" disabled selected>Selecione uma disciplina</option>
+                            {% for disciplina in disciplinas %}
+                                <option value="{{ disciplina[0] }}">{{ disciplina[1] }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="input-group-append">
+                            <button class="btn btn-danger remove-discipline" type="button">&times;</button>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" id="add-discipline" class="btn btn-primary mt-2">Adicionar Disciplina</button>
             </div>
             <button type="submit" class="btn btn-dark">Adicionar</button>
         </form>
     </div>
-    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <!-- Bootstrap JS -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 {% endblock %}
 </body>
