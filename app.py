@@ -30,28 +30,104 @@ def quicksort(arr, key=lambda x: x):
 def index():
     conn = connect_db()
     cur = conn.cursor()
-    cur.execute('SELECT * FROM professores')
+    cur.execute('''
+        SELECT p.id, p.nome, array_agg(d.nome ORDER BY d.nome) AS disciplinas
+        FROM professores p
+        LEFT JOIN professor_disciplinas pd ON p.id = pd.professor_id
+        LEFT JOIN disciplinas d ON pd.disciplina_id = d.id
+        GROUP BY p.id, p.nome
+        ORDER BY p.nome
+    ''')
     professores = cur.fetchall()
     cur.close()
     conn.close()
     return render_template('index.html', professores=professores)
 
+
 @app.route('/new_professor', methods=['GET', 'POST'])
 def new_professor():
     if request.method == 'POST':
         nome = request.form['nome']
-        disciplina = request.form['disciplina']
+        disciplinas = request.form.getlist('disciplinas[]')
         try:
             conn = connect_db()
             cur = conn.cursor()
-            cur.execute('INSERT INTO professores (nome, disciplina) VALUES (%s, %s)', (nome, disciplina))
+            cur.execute('INSERT INTO professores (nome) VALUES (%s) RETURNING id', (nome,))
+            professor_id = cur.fetchone()[0]
+            for disciplina_id in disciplinas:
+                cur.execute('INSERT INTO professor_disciplinas (professor_id, disciplina_id) VALUES (%s, %s)', (professor_id, disciplina_id))
             conn.commit()
             cur.close()
             conn.close()
             return redirect(url_for('index'))
         except Exception as e:
             print(f"Ocorreu um erro ao inserir o professor: {e}")
-    return render_template('new.html')
+    else:
+        conn = connect_db()
+        cur = conn.cursor()
+        cur.execute('SELECT id, nome FROM disciplinas')
+        disciplinas = cur.fetchall()
+        cur.close()
+        conn.close()
+        return render_template('newProfessor.html', disciplinas=disciplinas)
+
+
+@app.route('/edit_professor/<int:id>', methods=['GET', 'POST'])
+def edit_professor(id):
+    if request.method == 'POST':
+        nome = request.form['nome']
+        disciplinas = request.form.getlist('disciplinas[]')
+        try:
+            conn = connect_db()
+            cur = conn.cursor()
+            cur.execute('UPDATE professores SET nome = %s WHERE id = %s', (nome, id))
+            cur.execute('DELETE FROM professor_disciplinas WHERE professor_id = %s', (id,))
+            for disciplina_id in disciplinas:
+                cur.execute('INSERT INTO professor_disciplinas (professor_id, disciplina_id) VALUES (%s, %s)', (id, disciplina_id))
+            conn.commit()
+            cur.close()
+            conn.close()
+            return redirect(url_for('index'))
+        except Exception as e:
+            print(f"Ocorreu um erro ao editar o professor: {e}")
+    else:
+        conn = connect_db()
+        cur = conn.cursor()
+        cur.execute('SELECT id, nome FROM professores WHERE id = %s', (id,))
+        professor = cur.fetchone()
+        cur.execute('SELECT id, nome FROM disciplinas')
+        disciplinas = cur.fetchall()
+        cur.execute('SELECT disciplina_id FROM professor_disciplinas WHERE professor_id = %s', (id,))
+        professor_disciplinas = cur.fetchall()
+        professor_disciplinas_ids = [disciplina[0] for disciplina in professor_disciplinas]
+        cur.close()
+        conn.close()
+        return render_template('editProfessor.html', professor=professor, disciplinas=disciplinas, professor_disciplinas_ids=professor_disciplinas_ids)
+
+@app.route('/delete_professor/<int:id>', methods=['POST'])
+def delete_professor(id):
+    try:
+        conn = connect_db()
+        cur = conn.cursor()
+        # Verificar se existem aulas associadas ao professor
+        cur.execute('SELECT COUNT(*) FROM aulas WHERE professor_id = %s', (id,))
+        count = cur.fetchone()[0]
+        if count > 0:
+            error = "Não é possível excluir o professor, pois existem aulas associadas a ele."
+            return redirect(url_for('index', error=error))
+        # Deletar as relações entre o professor e as disciplinas
+        cur.execute('DELETE FROM professor_disciplinas WHERE professor_id = %s', (id,))
+        # Finalmente, deletar o professor
+        cur.execute('DELETE FROM professores WHERE id = %s', (id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return redirect(url_for('index'))
+    except Exception as e:
+        error = f"Ocorreu um erro ao deletar o professor: {e}"
+        return redirect(url_for('index', error=error))
+
+
 
 #-----------------------------------------------------------------DISCIPLINAS------------------------------------------------------------------
 
@@ -91,14 +167,24 @@ def delete_disciplina(id):
     try:
         conn = connect_db()
         cur = conn.cursor()
+        # Verificar se existem aulas associadas à disciplina
+        cur.execute('SELECT COUNT(*) FROM aulas WHERE disciplina_id = %s', (id,))
+        count = cur.fetchone()[0]
+        if count > 0:
+            error = "Não é possível excluir a disciplina, pois existem aulas associadas a ela."
+            return redirect(url_for('index_disciplinas', error=error))
+        # Deletar as relações entre a disciplina e os professores
+        cur.execute('DELETE FROM professor_disciplinas WHERE disciplina_id = %s', (id,))
+        # Finalmente, deletar a disciplina
         cur.execute('DELETE FROM disciplinas WHERE id = %s', (id,))
         conn.commit()
         cur.close()
         conn.close()
         return redirect(url_for('index_disciplinas'))
     except Exception as e:
-        print(f"Ocorreu um erro ao deletar o curso: {e}")
-        return redirect(url_for('index_disciplinas'))
+        error = f"Ocorreu um erro ao deletar a disciplina: {e}"
+        return redirect(url_for('index_disciplinas', error=error))
+
 
 @app.route('/edit_disciplina/<int:id>', methods=['GET', 'POST'])
 def edit_disciplina(id):
@@ -180,15 +266,24 @@ def delete_curso(id):
     try:
         conn = connect_db()
         cur = conn.cursor()
+        # Verificar se existem aulas associadas ao curso
+        cur.execute('SELECT COUNT(*) FROM aulas WHERE curso_id = %s', (id,))
+        count = cur.fetchone()[0]
+        if count > 0:
+            error = "Não é possível excluir o curso, pois existem aulas associadas a ele."
+            return redirect(url_for('index_curso', error=error))
+        # Deletar as relações entre o curso e as disciplinas
         cur.execute('DELETE FROM curso_disciplinas WHERE curso_id = %s', (id,))
+        # Finalmente, deletar o curso
         cur.execute('DELETE FROM cursos WHERE id = %s', (id,))
         conn.commit()
         cur.close()
         conn.close()
         return redirect(url_for('index_curso'))
     except Exception as e:
-        print(f"Ocorreu um erro ao deletar o curso: {e}")
-        return redirect(url_for('index_curso'))
+        error = f"Ocorreu um erro ao deletar o curso: {e}"
+        return redirect(url_for('index_curso', error=error))
+
 
 @app.route('/edit_curso/<int:id>', methods=['GET', 'POST'])
 def edit_curso(id):
@@ -241,27 +336,38 @@ def index_aula():
     conn.close()
     return render_template('aulas/indexAula.html', aulas=aulas)
 
+
 @app.route('/new_aula', methods=['GET', 'POST'])
 def new_aula():
     if request.method == 'POST':
         curso_id = request.form['curso_id']
         disciplina_id = request.form['disciplina_id']
         professor_id = request.form['professor_id']
-        dia_semana = request.form['dia_semana']
-        hora_inicio = request.form['hora_inicio']
-        hora_fim = request.form['hora_fim']
         sala = request.form['sala']
-        try:
-            conn = connect_db()
-            cur = conn.cursor()
-            cur.execute('INSERT INTO aulas (curso_id, disciplina_id, professor_id, dia_semana, hora_inicio, hora_fim, sala) VALUES (%s, %s, %s, %s, %s, %s, %s)',
-                        (curso_id, disciplina_id, professor_id, dia_semana, hora_inicio, hora_fim, sala))
-            conn.commit()
-            cur.close()
-            conn.close()
-            return redirect(url_for('index_aula'))
-        except Exception as e:
-            print(f"Ocorreu um erro ao inserir a aula: {e}")
+        periodo = request.form['periodo']
+        alocacao_tipo = request.form['alocacao_tipo']
+
+        if alocacao_tipo == 'automatica':
+            message = allocate_class(curso_id, disciplina_id, professor_id, sala, periodo)
+        else:
+            dia_semana = request.form['dia_semana']
+            hora_inicio = request.form['hora_inicio']
+            hora_fim = request.form['hora_fim']
+            try:
+                conn = connect_db()
+                cur = conn.cursor()
+                cur.execute('''
+                    INSERT INTO aulas (curso_id, disciplina_id, professor_id, dia_semana, hora_inicio, hora_fim, sala)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ''', (curso_id, disciplina_id, professor_id, dia_semana, hora_inicio, hora_fim, sala))
+                conn.commit()
+                cur.close()
+                conn.close()
+                message = "Aula alocada manualmente com sucesso."
+            except Exception as e:
+                message = f"Ocorreu um erro ao alocar a aula manualmente: {e}"
+
+        return redirect(url_for('index_aula', message=message))
     else:
         periodo = request.args.get('periodo', 'matutino')
         conn = connect_db()
@@ -284,9 +390,11 @@ def new_aula():
         conn.close()
 
         # Organizar as aulas em um dicionário para fácil acesso no template
-        dias_da_semana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+        dias_da_semana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado",
+                          "Domingo"]
         horario_semanal = {dia: {hora: [] for hora in range(8, 11) if periodo == 'matutino'} for dia in dias_da_semana}
-        horario_semanal.update({dia: {hora: [] for hora in range(19, 22) if periodo == 'noturno'} for dia in dias_da_semana})
+        horario_semanal.update(
+            {dia: {hora: [] for hora in range(19, 22) if periodo == 'noturno'} for dia in dias_da_semana})
 
         for aula in aulas:
             hora_inicio = aula[5].hour
@@ -295,7 +403,9 @@ def new_aula():
                 if hora in horario_semanal[aula[4]]:
                     horario_semanal[aula[4]][hora].append(aula)
 
-        return render_template('aulas/newAula.html', cursos=cursos, disciplinas=disciplinas, professores=professores, horario_semanal=horario_semanal, periodo=periodo)
+        return render_template('aulas/newAula.html', cursos=cursos, disciplinas=disciplinas, professores=professores,
+                               horario_semanal=horario_semanal, periodo=periodo)
+
 
 @app.route('/delete_aula/<int:id>', methods=['POST'])
 def delete_aula(id):
@@ -346,6 +456,71 @@ def edit_aula(id):
         cur.close()
         conn.close()
         return render_template('aulas/editAula.html', aula=aula, cursos=cursos, disciplinas=disciplinas, professores=professores)
+
+
+def find_available_slots(horario_semanal, periodo):
+    available_slots = []
+    horas = range(8, 11) if periodo == 'matutino' else range(19, 22)
+    dias_da_semana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado",
+                      "Domingo"]
+
+    for dia in dias_da_semana:
+        for hora in horas:
+            if not horario_semanal[dia][hora]:
+                available_slots.append((dia, hora))
+
+    return available_slots
+
+
+def allocate_class(curso_id, disciplina_id, professor_id, sala, periodo):
+    conn = connect_db()
+    cur = conn.cursor()
+
+    # Obter todas as aulas existentes
+    cur.execute('''
+        SELECT aulas.id, aulas.dia_semana, aulas.hora_inicio, aulas.hora_fim
+        FROM aulas
+    ''')
+    aulas = cur.fetchall()
+
+    # Organizar as aulas em um dicionário para fácil acesso
+    dias_da_semana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+    horario_semanal = {dia: {hora: [] for hora in range(8, 11) if periodo == 'matutino'} for dia in dias_da_semana}
+    horario_semanal.update({dia: {hora: [] for hora in range(19, 22) if periodo == 'noturno'} for dia in dias_da_semana})
+
+    for aula in aulas:
+        hora_inicio = aula[2].hour
+        hora_fim = aula[3].hour
+        for hora in range(hora_inicio, hora_fim):
+            if hora in horario_semanal[aula[1]]:
+                horario_semanal[aula[1]][hora].append(aula)
+
+    # Encontrar horários disponíveis
+    available_slots = find_available_slots(horario_semanal, periodo)
+
+    if not available_slots:
+        return "Não há horários disponíveis para alocar a aula."
+
+    # Alocar a aula no primeiro horário disponível
+    dia_semana, hora = available_slots[0]
+    hora_inicio = f"{hora}:00"
+    hora_fim = f"{hora+1}:00"
+
+    try:
+        cur.execute('''
+            INSERT INTO aulas (curso_id, disciplina_id, professor_id, dia_semana, hora_inicio, hora_fim, sala)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        ''', (curso_id, disciplina_id, professor_id, dia_semana, hora_inicio, hora_fim, sala))
+        conn.commit()
+    except Exception as e:
+        return f"Ocorreu um erro ao alocar a aula: {e}"
+    finally:
+        cur.close()
+        conn.close()
+
+    return "Aula alocada com sucesso."
+
+
 
 
 #-----------------------------------------------------------------AULAS------------------------------------------------------------------

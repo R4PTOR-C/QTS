@@ -1,0 +1,13 @@
+.custom-navbar {
+    background-color: red; /* Cor de fundo */
+    color: black; /* Cor do texto */
+}
+
+.custom-navbar .navbar-brand,
+.custom-navbar .nav-link {
+    color: #ffffff; /* Cor do texto */
+}
+
+.custom-navbar .nav-link:hover {
+    color: #f8f9fa; /* Cor do texto ao passar o mouse */
+}
