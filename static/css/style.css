@@ -1,6 +1,7 @@
 .custom-navbar {
-    background-color: red; /* Cor de fundo */
+    background-color: #be242d; /* Cor de fundo */
     color: black; /* Cor do texto */
+    border-bottom: 1px solid #be242d;
 }
 
 .custom-navbar .navbar-brand,
@@ -11,3 +12,35 @@
 .custom-navbar .nav-link:hover {
     color: #f8f9fa; /* Cor do texto ao passar o mouse */
 }
+
+/* Estilo base para todos os botões */
+.btn-periodo {
+    background-color: #f8f9fa; /* Cor de fundo padrão */
+    color: #000; /* Cor do texto padrão */
+    border: 1px solid #ddd; /* Borda padrão */
+    padding: 10px 20px; /* Espaçamento interno */
+    text-align: center; /* Alinhamento do texto */
+    text-decoration: none; /* Remover sublinhado */
+    display: inline-block; /* Display inline */
+    margin: 4px 2px; /* Margens */
+    cursor: pointer; /* Cursor de ponteiro ao passar sobre o botão */
+    font-size: 16px; /* Tamanho da fonte */
+}
+
+/* Estilo para botões ativos */
+.btn-periodo.active {
+    background-color: #223339; /* Cor de fundo para botão ativo */
+    color: #fff; /* Cor do texto para botão ativo */
+    border: 1px solid #223339; /* Borda para botão ativo */
+}
+
+
+
+.thead{
+    background-color: #be242d !important;
+}
+
+.thead th{
+    color: white !important;
+}
+

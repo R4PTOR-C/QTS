@@ -26,7 +26,7 @@ def quicksort(arr, key=lambda x: x):
 
 #-----------------------------------------------------------------PROFESSORES------------------------------------------------------------------
 
-@app.route('/')
+@app.route('/professores')
 def index():
     conn = connect_db()
     cur = conn.cursor()
@@ -418,8 +418,9 @@ def delete_aula(id):
         conn.close()
         return redirect(url_for('index_aula'))
     except Exception as e:
-        print(f"Ocorreu um erro ao deletar a aula: {e}")
-        return redirect(url_for('index_aula'))
+        error = f"Ocorreu um erro ao deletar a aula: {e}"
+        return redirect(url_for('index_aula', error=error))
+
 
 @app.route('/edit_aula/<int:id>', methods=['GET', 'POST'])
 def edit_aula(id):
@@ -525,7 +526,7 @@ def allocate_class(curso_id, disciplina_id, professor_id, sala, periodo):
 
 #-----------------------------------------------------------------AULAS------------------------------------------------------------------
 
-@app.route('/quadro_semanal')
+@app.route('/')
 def redirect_quadro_semanal():
     return redirect(url_for('quadro_semanal', periodo='noturno'))
 

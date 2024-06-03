@@ -27,11 +27,11 @@
     <div class="container">
         <h1 class="mt-5">Quadro Semanal</h1>
         <div class="btn-group" role="group" aria-label="Periodo Selector">
-            <a href="{{ url_for('quadro_semanal', periodo='matutino') }}" class="btn btn-dark {% if periodo == 'matutino' %}active{% endif %}">Matutino</a>
-            <a href="{{ url_for('quadro_semanal', periodo='noturno') }}" class="btn btn-dark {% if periodo == 'noturno' %}active{% endif %}">Noturno</a>
+            <a href="{{ url_for('quadro_semanal', periodo='matutino') }}" class="btn btn-periodo  {% if periodo == 'matutino' %}active{% endif %}">Matutino</a>
+            <a href="{{ url_for('quadro_semanal', periodo='noturno') }}" class="btn btn-periodo {% if periodo == 'noturno' %}active{% endif %}">Noturno</a>
         </div>
         <table class="table table-bordered mt-3">
-            <thead class="thead-dark">
+            <thead class="thead">
                 <tr>
                     <th>Horário</th>
                     <th>Segunda-feira</th>
