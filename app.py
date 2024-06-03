@@ -24,6 +24,26 @@ def quicksort(arr, key=lambda x: x):
     right = [x for x in arr if key(x) > key(pivot)]
     return quicksort(left, key) + middle + quicksort(right, key)
 
+def binary_search(arr, target, key=lambda x: x):
+    low, high = 0, len(arr)
+    while low < high:
+        mid = (low + high) // 2
+        if key(arr[mid]) < key(target):
+            low = mid + 1
+        else:
+            high = mid
+    return low
+
+def bubble_sort(arr, key=lambda x: x):
+    n = len(arr)
+    for i in range(n):
+        for j in range(0, n-i-1):
+            if key(arr[j]) > key(arr[j+1]):
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+    return arr
+
+
+
 #-----------------------------------------------------------------PROFESSORES------------------------------------------------------------------
 
 @app.route('/professores')
@@ -36,12 +56,16 @@ def index():
         LEFT JOIN professor_disciplinas pd ON p.id = pd.professor_id
         LEFT JOIN disciplinas d ON pd.disciplina_id = d.id
         GROUP BY p.id, p.nome
-        ORDER BY p.nome
     ''')
     professores = cur.fetchall()
     cur.close()
     conn.close()
+
+    # Ordenar os professores por nome usando Bubble Sort
+    professores = bubble_sort(professores, key=lambda x: x[1])
+
     return render_template('index.html', professores=professores)
+
 
 
 @app.route('/new_professor', methods=['GET', 'POST'])
@@ -228,6 +252,9 @@ def index_curso():
     cursos = cur.fetchall()
     cur.close()
     conn.close()
+
+    cursos = bubble_sort(cursos, key=lambda x: x[1])
+
     return render_template('cursos/indexCurso.html', cursos=cursos)
 
 @app.route('/new_curso', methods=['GET', 'POST'])
@@ -462,15 +489,16 @@ def edit_aula(id):
 def find_available_slots(horario_semanal, periodo):
     available_slots = []
     horas = range(8, 11) if periodo == 'matutino' else range(19, 22)
-    dias_da_semana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado",
-                      "Domingo"]
+    dias_da_semana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
 
     for dia in dias_da_semana:
         for hora in horas:
             if not horario_semanal[dia][hora]:
-                available_slots.append((dia, hora))
+                pos = binary_search(available_slots, (dia, hora), key=lambda x: (dias_da_semana.index(x[0]), x[1]))
+                available_slots.insert(pos, (dia, hora))
 
     return available_slots
+
 
 
 def allocate_class(curso_id, disciplina_id, professor_id, sala, periodo):
@@ -486,8 +514,8 @@ def allocate_class(curso_id, disciplina_id, professor_id, sala, periodo):
 
     # Organizar as aulas em um dicionário para fácil acesso
     dias_da_semana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
-    horario_semanal = {dia: {hora: [] for hora in range(8, 11) if periodo == 'matutino'} for dia in dias_da_semana}
-    horario_semanal.update({dia: {hora: [] for hora in range(19, 22) if periodo == 'noturno'} for dia in dias_da_semana})
+    horario_semanal = {dia: {hora: [] for hora in range(8, 11)} for dia in dias_da_semana}
+    horario_semanal.update({dia: {hora: [] for hora in range(19, 22)} for dia in dias_da_semana})
 
     for aula in aulas:
         hora_inicio = aula[2].hour

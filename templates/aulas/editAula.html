@@ -6,57 +6,36 @@
     <title>QTS - Editar Aula</title>
     <!-- Bootstrap CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <script>
-        function updateHorario() {
-            var periodo = document.getElementById('periodo').value;
-            var hora_inicio = document.getElementById('hora_inicio');
-            var hora_fim = document.getElementById('hora_fim');
-
-            // Limpar as opções atuais
-            hora_inicio.innerHTML = '';
-            hora_fim.innerHTML = '';
-
-            if (periodo === 'matutino') {
-                for (var i = 8; i <= 11; i++) {
-                    var optionInicio = document.createElement('option');
-                    optionInicio.value = i + ':00';
-                    optionInicio.text = i + ':00';
-                    hora_inicio.add(optionInicio);
-
-                    var optionFim = document.createElement('option');
-                    optionFim.value = i + ':00';
-                    optionFim.text = i + ':00';
-                    hora_fim.add(optionFim);
-                }
-            } else if (periodo === 'noturno') {
-                for (var i = 19; i <= 22; i++) {
-                    var optionInicio = document.createElement('option');
-                    optionInicio.value = i + ':00';
-                    optionInicio.text = i + ':00';
-                    hora_inicio.add(optionInicio);
-
-                    var optionFim = document.createElement('option');
-                    optionFim.value = i + ':00';
-                    optionFim.text = i + ':00';
-                    hora_fim.add(optionFim);
-                }
-            }
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <style>
+        .table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
         }
-
-        function setInitialHorario(horaInicio, horaFim) {
-            var periodo = document.getElementById('periodo').value;
-            var hora_inicio = document.getElementById('hora_inicio');
-            var hora_fim = document.getElementById('hora_fim');
-
-            updateHorario();  // Populate the select options
-
-            // Set the initial values
-            hora_inicio.value = horaInicio;
-            hora_fim.value = horaFim;
+        .table td, .table th {
+            padding: .75rem;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
         }
-    </script>
+        .btn-periodo.active {
+            background-color: #be242d;
+            color: #fff;
+        }
+        .btn-periodo {
+            background-color: #f8f9fa;
+            color: #000;
+            border: 1px solid #dee2e6;
+        }
+        .selected-slot {
+            background-color: #d1e7dd; /* Verde claro */
+        }
+        .occupied-slot {
+            background-color: #f8d7da; /* Vermelho claro */
+            cursor: not-allowed;
+        }
+    </style>
 </head>
-<body onload="setInitialHorario('{{ aula[5] }}', '{{ aula[6] }}')">
+<body>
 {% extends "base.html" %}
 
 {% block title %}Editar Aula{% endblock %}
@@ -69,7 +48,7 @@
                 <label for="curso_id">Curso:</label>
                 <select class="form-control" id="curso_id" name="curso_id" required>
                     {% for curso in cursos %}
-                        <option value="{{ curso[0] }}" {% if aula[1] == curso[0] %}selected{% endif %}>{{ curso[1] }}</option>
+                        <option value="{{ curso[0] }}" {% if curso[0] == aula[1] %}selected{% endif %}>{{ curso[1] }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -77,7 +56,7 @@
                 <label for="disciplina_id">Disciplina:</label>
                 <select class="form-control" id="disciplina_id" name="disciplina_id" required>
                     {% for disciplina in disciplinas %}
-                        <option value="{{ disciplina[0] }}" {% if aula[2] == disciplina[0] %}selected{% endif %}>{{ disciplina[1] }}</option>
+                        <option value="{{ disciplina[0] }}" {% if disciplina[0] == aula[2] %}selected{% endif %}>{{ disciplina[1] }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -85,48 +64,93 @@
                 <label for="professor_id">Professor:</label>
                 <select class="form-control" id="professor_id" name="professor_id" required>
                     {% for professor in professores %}
-                        <option value="{{ professor[0] }}" {% if aula[3] == professor[0] %}selected{% endif %}>{{ professor[1] }}</option>
+                        <option value="{{ professor[0] }}" {% if professor[0] == aula[3] %}selected{% endif %}>{{ professor[1] }}</option>
                     {% endfor %}
                 </select>
-            </div>
-            <div class="form-group">
-                <label for="dia_semana">Dia da Semana:</label>
-                <select class="form-control" id="dia_semana" name="dia_semana" required>
-                    <option value="Segunda-feira" {% if aula[4] == "Segunda-feira" %}selected{% endif %}>Segunda-feira</option>
-                    <option value="Terça-feira" {% if aula[4] == "Terça-feira" %}selected{% endif %}>Terça-feira</option>
-                    <option value="Quarta-feira" {% if aula[4] == "Quarta-feira" %}selected{% endif %}>Quarta-feira</option>
-                    <option value="Quinta-feira" {% if aula[4] == "Quinta-feira" %}selected{% endif %}>Quinta-feira</option>
-                    <option value="Sexta-feira" {% if aula[4] == "Sexta-feira" %}selected{% endif %}>Sexta-feira</option>
-                    <option value="Sábado" {% if aula[4] == "Sábado" %}selected{% endif %}>Sábado</option>
-                    <option value="Domingo" {% if aula[4] == "Domingo" %}selected{% endif %}>Domingo</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="periodo">Período:</label>
-                <select class="form-control" id="periodo" name="periodo" onchange="updateHorario()" required>
-                    <option value="matutino" {% if aula[5].hour < 12 %}selected{% endif %}>Matutino (08:00 - 11:00)</option>
-                    <option value="noturno" {% if aula[5].hour >= 12 %}selected{% endif %}>Noturno (19:00 - 22:00)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="hora_inicio">Hora de Início:</label>
-                <select class="form-control" id="hora_inicio" name="hora_inicio" required></select>
-            </div>
-            <div class="form-group">
-                <label for="hora_fim">Hora de Fim:</label>
-                <select class="form-control" id="hora_fim" name="hora_fim" required></select>
             </div>
             <div class="form-group">
                 <label for="sala">Sala:</label>
                 <input type="text" class="form-control" id="sala" name="sala" value="{{ aula[7] }}" required>
             </div>
-            <button type="submit" class="btn btn-dark">Salvar</button>
+
+            <!-- Quadro Semanal -->
+            <h2>Selecionar Horário no Quadro Semanal</h2>
+            <div class="btn-group" role="group" aria-label="Periodo Selector">
+                <a href="{{ url_for('edit_aula', id=aula[0], periodo='matutino') }}" class="btn btn-periodo {% if periodo == 'matutino' %}active{% endif %}">Matutino</a>
+                <a href="{{ url_for('edit_aula', id=aula[0], periodo='noturno') }}" class="btn btn-periodo {% if periodo == 'noturno' %}active{% endif %}">Noturno</a>
+            </div>
+            <div class="table-responsive mt-3">
+                <table class="table table-bordered">
+                    <thead class="thead">
+                        <tr>
+                            <th>Horário</th>
+                            <th>Segunda-feira</th>
+                            <th>Terça-feira</th>
+                            <th>Quarta-feira</th>
+                            <th>Quinta-feira</th>
+                            <th>Sexta-feira</th>
+                            <th>Sábado</th>
+                            <th>Domingo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if periodo == 'matutino' %}
+                            {% for hora in range(8, 12) %}
+                                <tr>
+                                    <td>{{ hora }}:00 - {{ hora+1 }}:00</td>
+                                    {% for dia in ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"] %}
+                                        <td class="{% if dia in horario_semanal and hora in horario_semanal[dia] %}occupied-slot{% else %}selectable-slot{% endif %}"
+                                            data-dia="{{ dia }}" data-hora="{{ hora }}">
+                                            {% if dia in horario_semanal and hora in horario_semanal[dia] %}
+                                                <div>
+                                                    <strong>{{ horario_semanal[dia][hora][0]['disciplina'] }}</strong><br>
+                                                    {{ horario_semanal[dia][hora][0]['professor'] }}<br>
+                                                    Sala: {{ horario_semanal[dia][hora][0]['sala'] }}<br>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        {% elif periodo == 'noturno' %}
+                            {% for hora in range(19, 23) %}
+                                <tr>
+                                    <td>{{ hora }}:00 - {{ hora+1 }}:00</td>
+                                    {% for dia in ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"] %}
+                                        <td class="{% if dia in horario_semanal and hora in horario_semanal[dia] %}occupied-slot{% else %}selectable-slot{% endif %}"
+                                            data-dia="{{ dia }}" data-hora="{{ hora }}">
+                                            {% if dia in horario_semanal and hora in horario_semanal[dia] %}
+                                                <div>
+                                                    <strong>{{ horario_semanal[dia][hora][0]['disciplina'] }}</strong><br>
+                                                    {{ horario_semanal[dia][hora][0]['professor'] }}<br>
+                                                    Sala: {{ horario_semanal[dia][hora][0]['sala'] }}<br>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <button type="submit" class="btn btn-dark">Salvar Alterações</button>
         </form>
     </div>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.selectable-slot').click(function() {
+                if (!$(this).hasClass('occupied-slot')) {
+                    $(this).toggleClass('selected-slot');
+                }
+            });
+        });
+    </script>
 {% endblock %}
 </body>
 </html>
