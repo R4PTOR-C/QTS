@@ -49,16 +49,20 @@
                         <td>{{ aula[6] }}</td>
                         <td>{{ aula[7] }}</td>
                         <td>
-                            <a href="{{ url_for('edit_aula', id=aula[0]) }}" class="btn btn-primary btn-sm">Editar</a>
-                            <form method="post" action="{{ url_for('delete_aula', id=aula[0]) }}" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta aula?');">
+                            <a href="{{ url_for('edit_aula', id=aula[0]) }}"
+                               class="btn btn-primary btn-sm mr-2">Editar</a>
+                            <form method="post" action="{{ url_for('delete_aula', id=aula[0]) }}"
+                                  style="display:inline;"
+                                  onsubmit="return confirm('Tem certeza que deseja excluir esta aula?');">
                                 <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
                             </form>
                         </td>
+
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
-        <a href="{{ url_for('new_aula') }}" class="btn btn-success">Adicionar Nova Aula</a>
+        <a href="{{ url_for('new_aula') }}" class="btn btn-adicionar">Adicionar Nova Aula</a>
     </div>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

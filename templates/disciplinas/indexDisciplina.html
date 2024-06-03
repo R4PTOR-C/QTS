@@ -39,7 +39,7 @@
                         <td>{{ disciplina[1] }}</td>
                         <td>{{ disciplina[2] }}</td>
                         <td>
-                            <a href="{{ url_for('edit_disciplina', id=disciplina[0]) }}" class="btn btn-primary btn-sm">Editar</a>
+                            <a href="{{ url_for('edit_disciplina', id=disciplina[0]) }}" class="btn btn-primary btn-sm button-gap">Editar</a>
                             <form method="post" action="{{ url_for('delete_disciplina', id=disciplina[0]) }}" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta disciplina?');">
                                 <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
                             </form>
@@ -48,7 +48,7 @@
                 {% endfor %}
             </tbody>
         </table>
-        <a href="{{ url_for('new_disciplina') }}" class="btn btn-success">Adicionar Nova Disciplina</a>
+        <a href="{{ url_for('new_disciplina') }}" class="btn btn-adicionar">Adicionar Nova Disciplina</a>
     </div>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

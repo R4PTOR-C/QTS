@@ -45,16 +45,20 @@
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{{ url_for('edit_professor', id=professor[0]) }}" class="btn btn-primary btn-sm">Editar</a>
-                            <form method="post" action="{{ url_for('delete_professor', id=professor[0]) }}" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir este professor?');">
+                            <a href="{{ url_for('edit_professor', id=professor[0]) }}"
+                               class="btn btn-primary btn-sm button-gap">Editar</a>
+                            <form method="post" action="{{ url_for('delete_professor', id=professor[0]) }}"
+                                  style="display:inline;"
+                                  onsubmit="return confirm('Tem certeza que deseja excluir este professor?');">
                                 <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
                             </form>
                         </td>
+
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
-        <a href="{{ url_for('new_professor') }}" class="btn btn-success">Adicionar Novo Professor</a>
+        <a href="{{ url_for('new_professor') }}" class="btn btn-adicionar">Adicionar Novo Professor</a>
     </div>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
