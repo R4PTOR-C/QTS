@@ -13,61 +13,63 @@
 {% block title %}Lista de Aulas{% endblock %}
 
 {% block content %}
-    <div class="container">
-        <h1 class="mt-5">Lista de Aulas</h1>
+<div class="container">
+    <h1 class="mt-5">Lista de Aulas</h1>
 
-        <!-- Exibir mensagem de erro se houver -->
-        {% if request.args.get('error') %}
-            <div class="alert alert-danger" role="alert">
-                {{ request.args.get('error') }}
-            </div>
-        {% endif %}
+    <!-- Exibir mensagem de erro se houver -->
+    {% if request.args.get('error') %}
+    <div class="alert alert-danger" role="alert">
+        {{ request.args.get('error') }}
+    </div>
+    {% endif %}
+    <div class="table-responsive mt-3">
 
         <table class="table table-bordered">
             <thead class="thead">
-                <tr>
-                    <th>ID</th>
-                    <th>Curso</th>
-                    <th>Disciplina</th>
-                    <th>Professor</th>
-                    <th>Dia da Semana</th>
-                    <th>Hora de Início</th>
-                    <th>Hora de Fim</th>
-                    <th>Sala</th>
-                    <th>Ações</th>
-                </tr>
+            <tr>
+                <th>ID</th>
+                <th>Curso</th>
+                <th>Disciplina</th>
+                <th>Professor</th>
+                <th>Dia da Semana</th>
+                <th>Hora de Início</th>
+                <th>Hora de Fim</th>
+                <th>Sala</th>
+                <th>Ações</th>
+            </tr>
             </thead>
             <tbody>
-                {% for aula in aulas %}
-                    <tr>
-                        <td>{{ aula[0] }}</td>
-                        <td>{{ aula[1] }}</td>
-                        <td>{{ aula[2] }}</td>
-                        <td>{{ aula[3] }}</td>
-                        <td>{{ aula[4] }}</td>
-                        <td>{{ aula[5] }}</td>
-                        <td>{{ aula[6] }}</td>
-                        <td>{{ aula[7] }}</td>
-                        <td>
-                            <a href="{{ url_for('edit_aula', id=aula[0]) }}"
-                               class="btn btn-primary btn-sm mr-2">Editar</a>
-                            <form method="post" action="{{ url_for('delete_aula', id=aula[0]) }}"
-                                  style="display:inline;"
-                                  onsubmit="return confirm('Tem certeza que deseja excluir esta aula?');">
-                                <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
-                            </form>
-                        </td>
+            {% for aula in aulas %}
+            <tr>
+                <td>{{ aula[0] }}</td>
+                <td>{{ aula[1] }}</td>
+                <td>{{ aula[2] }}</td>
+                <td>{{ aula[3] }}</td>
+                <td>{{ aula[4] }}</td>
+                <td>{{ aula[5] }}</td>
+                <td>{{ aula[6] }}</td>
+                <td>{{ aula[7] }}</td>
+                <td>
+                    <a href="{{ url_for('edit_aula', id=aula[0]) }}"
+                       class="btn btn-primary btn-sm mr-2">Editar</a>
+                    <form method="post" action="{{ url_for('delete_aula', id=aula[0]) }}"
+                          style="display:inline;"
+                          onsubmit="return confirm('Tem certeza que deseja excluir esta aula?');">
+                        <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                    </form>
+                </td>
 
-                    </tr>
-                {% endfor %}
+            </tr>
+            {% endfor %}
             </tbody>
         </table>
-        <a href="{{ url_for('new_aula') }}" class="btn btn-adicionar">Adicionar Nova Aula</a>
     </div>
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <a href="{{ url_for('new_aula') }}" class="btn btn-adicionar">Adicionar Nova Aula</a>
+</div>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 {% endblock %}
 </body>
 </html>
