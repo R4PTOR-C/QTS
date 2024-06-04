@@ -501,28 +501,37 @@ def find_available_slots(horario_semanal, periodo):
 
 
 
+
 def allocate_class(curso_id, disciplina_id, professor_id, sala, periodo):
     conn = connect_db()
     cur = conn.cursor()
 
     # Obter todas as aulas existentes
     cur.execute('''
-        SELECT aulas.id, aulas.dia_semana, aulas.hora_inicio, aulas.hora_fim
+        SELECT dia_semana, hora_inicio, hora_fim, disciplinas.nome, professores.nome, aulas.sala
         FROM aulas
+        JOIN disciplinas ON aulas.disciplina_id = disciplinas.id
+        JOIN professores ON aulas.professor_id = professores.id
     ''')
     aulas = cur.fetchall()
 
     # Organizar as aulas em um dicionário para fácil acesso
     dias_da_semana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
-    horario_semanal = {dia: {hora: [] for hora in range(8, 11)} for dia in dias_da_semana}
-    horario_semanal.update({dia: {hora: [] for hora in range(19, 22)} for dia in dias_da_semana})
+    horario_semanal = {dia: {hora: [] for hora in range(8, 12)} for dia in dias_da_semana}
+    for dia in dias_da_semana:
+        horario_semanal[dia].update({hora: [] for hora in range(19, 23)})
 
     for aula in aulas:
-        hora_inicio = aula[2].hour
-        hora_fim = aula[3].hour
+        dia = aula[0]
+        hora_inicio = aula[1].hour
+        hora_fim = aula[2].hour
         for hora in range(hora_inicio, hora_fim):
-            if hora in horario_semanal[aula[1]]:
-                horario_semanal[aula[1]][hora].append(aula)
+            if hora in horario_semanal[dia]:
+                horario_semanal[dia][hora].append({
+                    'disciplina': aula[3],
+                    'professor': aula[4],
+                    'sala': aula[5]
+                })
 
     # Encontrar horários disponíveis
     available_slots = find_available_slots(horario_semanal, periodo)
@@ -548,6 +557,8 @@ def allocate_class(curso_id, disciplina_id, professor_id, sala, periodo):
         conn.close()
 
     return "Aula alocada com sucesso."
+
+
 
 
 
